@@ -35,7 +35,7 @@ url1<- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
 download.file(url1, destfile="pml-testing.csv")
 testing<- read.csv("pml-testing.csv")
 ```
-*There are loads of missing variables so we first clean the data and then divide the data as training datasets as 60% and testing datasets as 40% and then fit the model using different method and see which one is better*
+*There are loads of missing variables so we first clean the data and then divide the data as training datasets as 75% and testing datasets as 35% and then fit the model using different method and see which one is better*
 
 
 ```{r cleaningpartition}
@@ -55,7 +55,7 @@ test = trainin2[-inTrain,]
 classification tree
 
 ```{r training}
-trControl<- trainControl(method = "cv",number = 3)
+trControl<- trainControl(method = "cv",number = 5)
 modFit <- train(classe ~ ., data = train, method = "rpart",trControl=trControl)
 modFit$finalModel
 suppressMessages(library(rattle))
@@ -75,7 +75,7 @@ p<-plot(cm$table, col = cm$byClass,
 *This model had overall accuracy of 0.53 with low kappa value and the estimated out-of-sample error is 0.46 (which is high) so all those variables were not sufficient to predict the model so we will use other method too. We used random forests method to see if these method are better than Recursive Partitioning and Regression Trees and classification tree. Random Forest automatically selects important variables. we used 3 fold cross validation to train the algorithm*
 
 ```{r, cache = T}
-mod_rf <- rpart(classe ~ ., train)
+mod_rf <- randomforest(classe ~ ., train)
 print(mod_rf)
 ```
 
@@ -91,7 +91,7 @@ cm1
 eose <- 1 - as.numeric(confusionMatrix(test$classe, predict_Rf)$overall[1])
 eose
 ```
-So, the estimated accuracy of the model is 82.7% and the estimated out-of-sample error is 0.17%. 
+So, the estimated accuracy of the model is 99.1% and the estimated out-of-sample error is 0.004%. 
 These model is better than 'rpart' method. In addition, we will compare with genralized global
 boosted regression model 'gbm' to see if these model is better or not.
 
@@ -110,21 +110,21 @@ print(best.iter)
 best.iter <- gbm.perf(mod_gbm, method = "OOB")
 print(best.iter)
 ```
-*This model when used found that residual standard error is 0.006 and then squared error loss is minimum at iteration of 200. So the 'gbm' model is better than'rpart' and 'rf' model*.
+*This model when used found that residual standard error is 0.001 and then squared error loss is minimum at iteration of 200. So the 'rf' model is better than'rpart' and 'rf' model*.
 
 ## Applying the best model to the validation data
-By comparing the accuracy rate values of the three models, it is clear the the ‘gbm’ model is the winner. 
+By comparing the accuracy rate values of the three models, it is clear the the ‘rf’ model is the winner. 
 So will use it on the validation data
 
 
 ```{r result}
-Results <- predict(mod_gbm, newdata=testing)
+Results <- predict(mod_rf, newdata=testin2)
 Results
 ```
 
 ## Conclusion
 
-The 'gbm' model was the best model found on the three models that we used.
+The 'rf' model was the best model found on the three models that we used.
 
 
 
